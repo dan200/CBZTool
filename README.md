@@ -21,10 +21,10 @@ Create a new book from a folder of images:
 CBZTool compress MyFolder
 ```
 
-Combine the first 6 pages of 2 different books:
+Combine the first 6 pages of one book with the second 6 pages of another:
 ```
 CBZTool extract MyFirstComic.cbz -o Temp -p 1-6
-CBZTool extract MySecondComic.cbz -o Temp -p 1-6 -a
+CBZTool extract MySecondComic.cbz -o Temp -p 7-12 -a
 CBZTool compress Temp -o MyCombinedComic.cbz
 ```
 
