@@ -1,6 +1,7 @@
 # CBZTool
 
-CBZ tool is an easy command line tool for creating and manipulating Comic Books stored in the .cbz format.
+CBZTool is an easy command line tool for creating and manipulating Comic Books stored in the .cbz format.
+
 It can be used to extract pages from books, create new books from image files, combine multiple books into one, and more.
 
 ## Installing
