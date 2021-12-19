@@ -23,9 +23,9 @@ CBZTool compress MyFolder
 
 Combine the first 6 pages of one book with the second 6 pages of another:
 ```
-CBZTool extract MyFirstComic.cbz -o Temp -p 1-6
-CBZTool extract MySecondComic.cbz -o Temp -p 7-12 -a
-CBZTool compress Temp -o MyCombinedComic.cbz
+CBZTool extract MyFirstComic.cbz -o MyCombinedComic -p 1-6
+CBZTool extract MySecondComic.cbz -o MyCombinedComic -p 7-12 -a
+CBZTool compress MyCombinedComic
 ```
 
 Create a copy of a book with improved image quality:
