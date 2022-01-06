@@ -16,18 +16,26 @@ namespace Dan200.CBZTool
         {
         }
 
-        public void Filter(BitmapData image)
+        public void Filter(Bitmap image)
         {
-            var tasks = new Task[Environment.ProcessorCount];
-            int standardSliceHeight = image.Height / tasks.Length;
-            int lastSliceHeight = image.Height - (tasks.Length - 1) * standardSliceHeight;
-            for (int i = 0; i < tasks.Length; ++i)
+            var bits = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
+            try
             {
-                int thisSliceHeight = (i < tasks.Length - 1) ? standardSliceHeight : lastSliceHeight;
-                var area = new Rectangle(0, i * standardSliceHeight, image.Width, thisSliceHeight);
-                tasks[i] = Task.Run(() => ProcessArea(image, area));
+                var tasks = new Task[Environment.ProcessorCount];
+                int standardSliceHeight = image.Height / tasks.Length;
+                int lastSliceHeight = image.Height - (tasks.Length - 1) * standardSliceHeight;
+                for (int i = 0; i < tasks.Length; ++i)
+                {
+                    int thisSliceHeight = (i < tasks.Length - 1) ? standardSliceHeight : lastSliceHeight;
+                    var area = new Rectangle(0, i * standardSliceHeight, image.Width, thisSliceHeight);
+                    tasks[i] = Task.Run(() => ProcessArea(bits, area));
+                }
+                Task.WhenAll(tasks).Wait();
             }
-            Task.WhenAll(tasks).Wait();
+            finally
+            {
+                image.UnlockBits(bits);
+            }
         }
 
         private unsafe void ProcessArea(BitmapData image, Rectangle area)

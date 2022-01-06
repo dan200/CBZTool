@@ -66,6 +66,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AlphaNumericComparator.cs" />
+    <Compile Include="RotateFlipFilter.cs" />
     <Compile Include="DenoiseFilter.cs" />
     <Compile Include="IImageFilter.cs" />
     <Compile Include="MultiRange.cs" />

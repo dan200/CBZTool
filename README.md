@@ -43,6 +43,8 @@ CBZTool extract PATH... [options]
   -a                Appends the extracted pages to the end of the directory, instead of replacing them (default=0)
   -denoise          Runs a noise reduction algorithm on the images when extracting (default=0)
   -whitebalance     Runs a white balancing algorithm on the images when extracting (default=0)
+  -flipX/Y          Flips the images when extracting (default=0)
+  -rot90/180/270    Rotates the images when extracting (default=0)
   -metadata         Specify that metadata files (tag.txt, ComicInfo.xml) should also be extracted (default=0)
 
 CBZTool compress PATH... [options]

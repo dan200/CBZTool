@@ -17,17 +17,25 @@ namespace Dan200.CBZTool
         {
         }
 
-        public void Filter(BitmapData image)
+        public void Filter(Bitmap image)
         {
-            int margin = (int)(image.Width * Margin);
-            var area = new Rectangle(margin, margin, image.Width - 2 * margin, image.Height - 2 * margin);
-            var tasks = new Task[3];
-            for (int i = 0; i < tasks.Length; ++i)
+            var bits = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
+            try
             {
-                int channelIdx = i;
-                tasks[i] = Task.Run(() => ProcessChannel(image, area, channelIdx));
+                int margin = (int)(image.Width * Margin);
+                var area = new Rectangle(margin, margin, image.Width - 2 * margin, image.Height - 2 * margin);
+                var tasks = new Task[3];
+                for (int i = 0; i < tasks.Length; ++i)
+                {
+                    int channelIdx = i;
+                    tasks[i] = Task.Run(() => ProcessChannel(bits, area, channelIdx));
+                }
+                Task.WhenAll(tasks).Wait();
             }
-            Task.WhenAll(tasks).Wait();
+            finally
+            {
+                image.UnlockBits(bits);
+            }
         }
 
         struct Histogram

@@ -28,6 +28,8 @@ namespace Dan200.CBZTool
                 "  -a                Appends the extracted pages to the end of the directory, instead of replacing them (default=0)" + Environment.NewLine +
                 "  -denoise          Runs a noise reduction algorithm on the images when extracting (default=0)" + Environment.NewLine +
                 "  -whitebalance     Runs a white balancing algorithm on the images when extracting (default=0)" + Environment.NewLine +
+                "  -flipX/Y          Flips the images when extracting (default=0)" + Environment.NewLine +
+                "  -rot90/180/270    Rotates the images when extracting (default=0)" + Environment.NewLine +
                 "  -metadata         Specify that metadata files (tag.txt, ComicInfo.xml) should also be extracted (default=0)" + Environment.NewLine +
                 Environment.NewLine +
                 "CBZTool compress PATH... [options]" + Environment.NewLine +
@@ -46,19 +48,10 @@ namespace Dan200.CBZTool
                 using (var image = (Bitmap)Image.FromStream(imageStream, false))
                 {
                     // Apply filters to the image
-                    var bits = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
-                    try
+                    foreach (IImageFilter filter in filters)
                     {
-                        foreach (IImageFilter filter in filters)
-                        {
-                            filter.Filter(bits);
-                        }
+                        filter.Filter(image);
                     }
-                    finally
-                    {
-                        image.UnlockBits(bits);
-                    }
-
                     // Save the image
                     image.Save(outputFile);
                 }
@@ -361,6 +354,26 @@ namespace Dan200.CBZTool
                 if (arguments.GetBoolOption("whitebalance"))
                 {
                     filters.Add(new WhiteBalanceFilter());
+                }
+                if (arguments.GetBoolOption("flipX"))
+                {
+                    filters.Add(new RotateFlipFilter(RotateFlipType.RotateNoneFlipX));
+                }
+                if (arguments.GetBoolOption("flipY"))
+                {
+                    filters.Add(new RotateFlipFilter(RotateFlipType.RotateNoneFlipY));
+                }
+                if (arguments.GetBoolOption("rot90"))
+                {
+                    filters.Add(new RotateFlipFilter(RotateFlipType.Rotate90FlipNone));
+                }
+                if (arguments.GetBoolOption("rot180"))
+                {
+                    filters.Add(new RotateFlipFilter(RotateFlipType.Rotate180FlipNone));
+                }
+                if (arguments.GetBoolOption("rot270"))
+                {
+                    filters.Add(new RotateFlipFilter(RotateFlipType.Rotate270FlipNone));
                 }
 
                 var inputFiles = new List<string>();
