@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Dan200.CBZTool
+namespace Dan200.CBZLib
 {
-    internal class MultiRange
+    public class PageList
     {
-        public static readonly MultiRange All = new MultiRange(Range.All);
+        public static readonly PageList All = new PageList(PageRange.All);
 
-        public static MultiRange Parse(string s)
+        public static PageList Parse(string s)
         {
-            MultiRange result;
+            PageList result;
             if (TryParse(s, out result))
             {
                 return result;
@@ -21,30 +21,30 @@ namespace Dan200.CBZTool
             }
         }
 
-        public static bool TryParse(string s, out MultiRange o_range)
+        public static bool TryParse(string s, out PageList o_list)
         {
-            var result = new MultiRange();
+            var result = new PageList();
             foreach (var part in s.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
-                Range range;
-                if (Range.TryParse(part.Trim(), out range))
+                PageRange range;
+                if (PageRange.TryParse(part.Trim(), out range))
                 {
                     result.Append(range);
                 }
                 else
                 {
-                    o_range = new MultiRange();
+                    o_list = new PageList();
                     return false;
                 }
             }
 
-            o_range = result;
+            o_list = result;
             return true;
         }
 
-        private readonly List<Range> m_subRanges;
+        private readonly List<PageRange> m_subRanges;
 
-        public IReadOnlyList<Range> SubRanges
+        public IReadOnlyList<PageRange> SubRanges
         {
             get
             {
@@ -52,46 +52,37 @@ namespace Dan200.CBZTool
             }
         }
 
-        public int TotalLength
+        public PageList(int firstAndlast) : this(new PageRange(firstAndlast))
         {
-            get
-            {
-                int total = 0;
-                foreach (var subRange in m_subRanges)
-                {
-                    total += subRange.Length;
-                }
-                return total;
-            }
         }
 
-        public MultiRange()
+        public PageList(int first, int last) : this(new PageRange(first, last))
         {
-            m_subRanges = new List<Range>();
         }
 
-        public MultiRange(params Range[] ranges)
+        public PageList(params PageRange[] ranges)
         {
-            m_subRanges = new List<Range>();
-            foreach(Range range in ranges)
+            m_subRanges = new List<PageRange>();
+            foreach(PageRange range in ranges)
             {
                 Append(range);
             }
         }
 
-        public void Append(MultiRange r)
+        public void Append(PageList r)
         {
-            foreach(Range range in r.SubRanges)
+            foreach(PageRange range in r.SubRanges)
             {
                 Append(range);
             }
         }
 
-        public void Append(Range r)
+        public void Append(PageRange r)
         {
             if(m_subRanges.Count > 0 && m_subRanges[SubRanges.Count - 1].Last == (r.First - 1))
             {
-                m_subRanges[SubRanges.Count - 1].Last = r.Last;
+                var lastRange = m_subRanges[SubRanges.Count - 1];
+                m_subRanges[SubRanges.Count - 1] = new PageRange(m_subRanges[SubRanges.Count - 1].First, r.Last);
             }
             else
             {
@@ -99,7 +90,7 @@ namespace Dan200.CBZTool
             }
         }
 
-        public bool Equals(MultiRange o)
+        public bool Equals(PageList o)
         {
             if (m_subRanges.Count == o.m_subRanges.Count)
             {

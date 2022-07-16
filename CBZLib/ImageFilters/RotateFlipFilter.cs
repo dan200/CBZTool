@@ -5,9 +5,9 @@ using System.Drawing.Imaging;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dan200.CBZTool
+namespace Dan200.CBZLib.ImageFilters
 {
-    internal class RotateFlipFilter : IImageFilter
+    public class RotateFlipFilter : IImageFilter
     {
         public RotateFlipType RotateFlipType;
 
@@ -16,7 +16,7 @@ namespace Dan200.CBZTool
             RotateFlipType = rotateFlipType;
         }
 
-        public void Filter(Bitmap image)
+        public void ApplyTo(Bitmap image)
         {
             image.RotateFlip(RotateFlipType);
         }

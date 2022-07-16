@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CBZLib", "CBZLib\CBZLib.csproj", "{AF9164BA-A68B-4E1C-B121-E64DF85CBF0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -20,6 +22,10 @@ Global
 		{9FE544AA-C7DB-4A8C-B793-AA0BB2A59213}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9FE544AA-C7DB-4A8C-B793-AA0BB2A59213}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9FE544AA-C7DB-4A8C-B793-AA0BB2A59213}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF9164BA-A68B-4E1C-B121-E64DF85CBF0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF9164BA-A68B-4E1C-B121-E64DF85CBF0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF9164BA-A68B-4E1C-B121-E64DF85CBF0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF9164BA-A68B-4E1C-B121-E64DF85CBF0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

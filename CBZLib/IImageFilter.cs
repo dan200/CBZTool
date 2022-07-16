@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Text;
 
-namespace Dan200.CBZTool
+namespace Dan200.CBZLib
 {
-    internal interface IImageFilter
+    public interface IImageFilter
     {
-        void Filter(Bitmap bitmap);
+        void ApplyTo(Bitmap bitmap);
     }
 }

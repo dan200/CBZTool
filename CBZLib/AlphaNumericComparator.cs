@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Dan200.CBZTool
 {
-    internal class AlphaNumericComparator : IComparer<string>
+    public class AlphaNumericComparator : IComparer<string>
     {
         public static readonly AlphaNumericComparator Instance = new AlphaNumericComparator();
 

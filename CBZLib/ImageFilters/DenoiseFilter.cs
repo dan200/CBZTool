@@ -5,9 +5,9 @@ using System.Drawing.Imaging;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dan200.CBZTool
+namespace Dan200.CBZLib.ImageFilters
 {
-    internal class DenoiseFilter : IImageFilter
+    public class DenoiseFilter : IImageFilter
     {
         public int KernelSize = 3;
         public int SimilarityThreshold = 10;
@@ -16,7 +16,7 @@ namespace Dan200.CBZTool
         {
         }
 
-        public void Filter(Bitmap image)
+        public void ApplyTo(Bitmap image)
         {
             var bits = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
             try

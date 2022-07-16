@@ -5,9 +5,9 @@ using System.Drawing.Imaging;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Dan200.CBZTool
+namespace Dan200.CBZLib.ImageFilters
 {
-    internal class WhiteBalanceFilter : IImageFilter
+    public class WhiteBalanceFilter : IImageFilter
     {
         public float BlackProportion = 0.006f;
         public float WhiteProportion = 0.006f;
@@ -17,7 +17,7 @@ namespace Dan200.CBZTool
         {
         }
 
-        public void Filter(Bitmap image)
+        public void ApplyTo(Bitmap image)
         {
             var bits = image.LockBits(new Rectangle(0, 0, image.Width, image.Height), ImageLockMode.ReadWrite, PixelFormat.Format24bppRgb);
             try

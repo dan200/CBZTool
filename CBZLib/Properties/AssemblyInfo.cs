@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("CBZTool")]
+[assembly: AssemblyTitle("CBZLib")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("9fe544aa-c7db-4a8c-b793-aa0bb2a59213")]
+[assembly: Guid("af9164ba-a68b-4e1c-b121-e64df85cbf0c")]
 
 // Version information for an assembly consists of the following four values:
 //

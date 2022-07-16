@@ -29,6 +29,18 @@ namespace Dan200.CBZTool
 			}
 		}
 
+		private string AddQuotes(string arg)
+        {
+			if (arg.Contains(" ") || arg.Contains("\t"))
+            {
+				return "\"" + arg + "\"";
+            }
+			else
+            {
+				return arg;
+            }
+        }
+
         public ProgramArguments(string[] args)
         {
             var representation = new StringBuilder();
@@ -48,13 +60,13 @@ namespace Dan200.CBZTool
                 }
                 else if (lastOption != null)
                 {
-                    representation.Append("-" + lastOption + " " + arg + " ");
+                    representation.Append("-" + lastOption + " " + AddQuotes(arg) + " ");
 					options[lastOption] = arg;
                     lastOption = null;
                 }
 				else
 				{
-					representation.Append(arg + " ");
+					representation.Append(AddQuotes(arg) + " ");
 					arguments.Add(arg);
 				}
             }
