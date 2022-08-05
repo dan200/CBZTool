@@ -26,7 +26,6 @@ namespace CBZTool
             {
                 var oldPageCount = outputComic.PageCount;
                 outputComic.AddPagesFromDirectory(inputPath, pages);
-                var pagesAdded = outputComic.PageCount - oldPageCount;
 
                 if (includeMetadata)
                 {
@@ -40,11 +39,11 @@ namespace CBZTool
                         }
                         if (append && outputComic.Metadata != null)
                         {
-                            outputComic.Metadata.Append(inputMetadata, outputComic.PageCount);
+                            outputComic.Metadata.Append(inputMetadata, oldPageCount);
                         }
                         else
                         {
-                            inputMetadata.MovePagesBy(outputComic.PageCount);
+                            inputMetadata.MovePagesBy(oldPageCount);
                             outputComic.Metadata = inputMetadata;
                         }
                         outputComic.StoreMetadataChanges();
