@@ -29,7 +29,7 @@ namespace Dan200.CBZLib
                 {
                     if (key.Equals(synonym, StringComparison.InvariantCultureIgnoreCase))
                     {
-                        foreach (var name in value.Split(new char[] { '/', '&', ',' }, StringSplitOptions.RemoveEmptyEntries))
+                        foreach (var name in value.Split(new string[] { "/", "&", ",", " and " }, StringSplitOptions.RemoveEmptyEntries))
                         {
                             o_credits.Add(new ComicAuthor(role, name.Trim()));
                         }
@@ -59,9 +59,18 @@ namespace Dan200.CBZLib
             {
                 line = line.Trim();
 
-                int colonPos = line.IndexOf(':');
-                if (colonPos >= 0)
+                if (line.StartsWith("http://") || line.StartsWith("https://"))
                 {
+                    // Website
+                    if (!contentsStarted)
+                    {
+                        metadata.Website = line;
+                    }
+                }
+                else if (line.Contains(':'))
+                {
+                    // Field
+                    int colonPos = line.IndexOf(':');
                     string key = line.Substring(0, colonPos).Trim().ToLowerInvariant();
                     string value = line.Substring(colonPos + 1).Trim();
                     if (key.Length > 0)
@@ -151,14 +160,6 @@ namespace Dan200.CBZLib
                         }
                     }
                 }
-                else if (line.StartsWith("http://"))
-                {
-                    // Website
-                    if (!contentsStarted)
-                    {
-                        metadata.Website = line;
-                    }
-                }
                 else if (line.ToLowerInvariant().StartsWith("page "))
                 {
                     // Start of a content section
@@ -171,7 +172,7 @@ namespace Dan200.CBZLib
                             titleLine = titleLine.Trim();
                             contentsStarted = true;
                             currentContent = new ComicContent();
-                            metadata.Content.Add(currentContent);
+                            metadata.Contents.Add(currentContent);
 
                             // Page range
                             currentContent.Pages = pageRange;

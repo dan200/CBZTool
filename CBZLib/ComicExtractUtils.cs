@@ -13,7 +13,10 @@ namespace Dan200.CBZLib
         public static bool IsImageFilePath(string path)
         {
             var extension = Path.GetExtension(path);
-            return extension.Equals(".png", StringComparison.InvariantCultureIgnoreCase) || extension.Equals(".jpg", StringComparison.InvariantCultureIgnoreCase);
+            return 
+                extension.Equals(".png", StringComparison.InvariantCultureIgnoreCase) ||
+                extension.Equals(".jpg", StringComparison.InvariantCultureIgnoreCase) ||
+                extension.Equals(".jpeg", StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static List<string> GetImagesInDirectory(string path)

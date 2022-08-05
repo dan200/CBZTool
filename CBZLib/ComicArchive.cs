@@ -20,6 +20,12 @@ namespace Dan200.CBZLib
         CBZ,
     }
 
+    public enum ComicImageFormat
+    {
+        PNG,
+        JPEG
+    }
+
     public enum ComicArchiveMode
     {
         Read,
@@ -85,6 +91,34 @@ namespace Dan200.CBZLib
             }
         }
 
+        private static ComicImageFormat GuessImageFormatFromExtension(string path)
+        {
+            string extension = Path.GetExtension(path).ToLowerInvariant();
+            switch (extension)
+            {
+                case ".png":
+                    return ComicImageFormat.PNG;
+                case ".jpg":
+                case ".jpeg":
+                    return ComicImageFormat.JPEG;
+                default:
+                    throw new NotSupportedException("Unknown image format: " + extension);
+            }
+        }
+
+        private static string GetDefaultExtensionForImageFormat(ComicImageFormat format)
+        {
+            switch(format)
+            {
+                case ComicImageFormat.PNG:
+                    return ".png";
+                case ComicImageFormat.JPEG:
+                    return ".jpg";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(format));
+            }
+        }
+
         public ComicArchive(string path, ComicArchiveMode openMode) : this(path, openMode, GuessArchiveFormatFromExtension(path))
         {
         }
@@ -125,10 +159,16 @@ namespace Dan200.CBZLib
             }
         }
 
-        public string GetPageFileExtension(int pageNum)
+        public ComicImageFormat GetPageImageFormat(int pageNum)
         {
             string entryPath = GetPageEntryPath(pageNum);
-            return Path.GetExtension(entryPath);
+            return GuessImageFormatFromExtension(entryPath);
+        }
+
+        public string GetPageFileName(int pageNum)
+        {
+            string entryPath = GetPageEntryPath(pageNum);
+            return Path.GetFileName(entryPath);
         }
 
         public Bitmap ExtractPageAsBitmap(int pageNum)
@@ -290,20 +330,23 @@ namespace Dan200.CBZLib
                         }
 
                         // Store contents
-                        if (metadata.Content.Count > 0)
+                        if (metadata.Contents.Count > 0)
                         {
                             var rootOutline = document.Outlines.Where(outline => outline.Title.Equals("Contents")).FirstOrDefault();
                             if (rootOutline == null)
                             {
                                 rootOutline = document.Outlines.Add("Contents", document.Pages[0], true, PdfOutlineStyle.Bold, XColors.Black);
                             }
-                            foreach (var content in metadata.Content)
+                            foreach (var content in metadata.Contents)
                             {
                                 if (content.Pages != null)
                                 {
-                                    int firstPage = previousPageCount + content.Pages.First;
-                                    var title = content.ToString();
-                                    rootOutline.Outlines.Add(title, document.Pages[firstPage - 1]);
+                                    int firstPageNumber = previousPageCount + content.Pages.First;
+                                    if (firstPageNumber >= 1 && firstPageNumber <= document.Pages.Count)
+                                    {
+                                        var title = content.ToString();
+                                        rootOutline.Outlines.Add(title, document.Pages[firstPageNumber - 1]);
+                                    }
                                 }
                             }
                         }
@@ -315,12 +358,12 @@ namespace Dan200.CBZLib
             }
         }
 
-        public void AddPageFromBitmap(Bitmap bitmap)
+        public void AddPageFromBitmap(Bitmap bitmap, ComicImageFormat format)
         {
-            AddPageFromBitmap(PageCount + 1, bitmap);
+            AddPageFromBitmap(PageCount + 1, bitmap, format);
         }
 
-        public void AddPageFromBitmap(int pageNumber, Bitmap bitmap)
+        public void AddPageFromBitmap(int pageNumber, Bitmap bitmap, ComicImageFormat format)
         {
             // Check arguments
             if (m_openMode == ComicArchiveMode.Read)
@@ -334,7 +377,7 @@ namespace Dan200.CBZLib
 
             // Generate a path for the new page
             var pageIndex = GetPageIndex();
-            var entryPath = ComicExtractUtils.GenerateNewImagePath(pageIndex, pageNumber, ".png");
+            var entryPath = ComicExtractUtils.GenerateNewImagePath(pageIndex, pageNumber, GetDefaultExtensionForImageFormat(format));
 
             // Move other pages out of the way
             if (pageNumber <= pageIndex.Count)
@@ -345,7 +388,17 @@ namespace Dan200.CBZLib
             // Add the page
             using (var outputStream = CreateNewEntry(entryPath))
             {
-                bitmap.Save(outputStream, ImageFormat.Png);
+                switch(format)
+                {
+                    case ComicImageFormat.PNG:
+                        bitmap.Save(outputStream, ImageFormat.Png);
+                        break;
+                    case ComicImageFormat.JPEG:
+                        bitmap.Save(outputStream, ImageFormat.Jpeg);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(format));
+                }
             }
             pageIndex.Insert(pageNumber - 1, entryPath);
         }
@@ -490,19 +543,35 @@ namespace Dan200.CBZLib
         public void DeletePage(int pageNumber)
         {
             // Check permissions
-            if(m_openMode == ComicArchiveMode.Read)
+            if (m_openMode == ComicArchiveMode.Read)
+            {
+                throw new InvalidOperationException("This archive is not writable");
+            }
+            if (pageNumber < 1 || pageNumber > PageCount)
+            {
+                throw new ArgumentOutOfRangeException(nameof(pageNumber));
+            }
+
+            // Delete the page
+            DeletePages(new PageList(pageNumber));
+        }
+
+        public void DeletePages(PageList pages)
+        {
+            // Check permissions
+            if (m_openMode == ComicArchiveMode.Read)
             {
                 throw new InvalidOperationException("This archive is not writable");
             }
 
-            // Delete the entry
+            // Delete the pages
             var pageIndex = GetPageIndex();
-            if (pageNumber < 1 || pageNumber > pageIndex.Count)
+            var pagePaths = GetPagePaths(pageIndex, pages);
+            foreach(var path in pagePaths)
             {
-                throw new ArgumentOutOfRangeException(nameof(pageNumber));
+                DeleteEntry(path);
+                pageIndex.Remove(path);
             }
-            DeleteEntry(pageIndex[pageNumber - 1]);
-            pageIndex.RemoveAt(pageNumber - 1);
         }
 
         private void LoadFromCBR(string path, ComicArchiveMode openMode)
@@ -665,7 +734,9 @@ namespace Dan200.CBZLib
             var results = new List<string>();
             foreach (PageRange subRange in pages.SubRanges)
             {
-                for (int pageNum = subRange.First; pageNum <= Math.Min(subRange.Last, pageIndex.Count); ++pageNum)
+                int firstPage = subRange.First;
+                int lastPage = Math.Min(subRange.Last, pageIndex.Count);
+                for (int pageNum = firstPage; pageNum <= lastPage; ++pageNum)
                 {
                     results.Add(pageIndex[pageNum - 1]);
                 }

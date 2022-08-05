@@ -156,7 +156,7 @@ namespace Dan200.CBZLib
                             }
                         }
 
-                        metadata.Content.Add(content);
+                        metadata.Contents.Add(content);
                     }
                 }
             }
@@ -209,7 +209,7 @@ namespace Dan200.CBZLib
 
                 // Write contents
                 writer.WriteStartElement("Contents");
-                foreach (var content in Content)
+                foreach (var content in Contents)
                 {
                     writer.WriteStartElement("Content");
                     WriteProperty(writer, "ContentType", content.ContentType);

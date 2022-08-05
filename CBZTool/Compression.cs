@@ -11,7 +11,7 @@ namespace CBZTool
 {
     internal static class Compression
     {
-        public static bool Compress_ImageFileToComic(string inputPath, string outputPath, bool append)
+        private static bool Compress_ImageFileToComic(string inputPath, string outputPath, bool append)
         {
             using(var outputComic = new ComicArchive(outputPath, append ? ComicArchiveMode.Modify : ComicArchiveMode.Create))
             {
@@ -20,7 +20,7 @@ namespace CBZTool
             return true;
         }
 
-        public static bool Compress_DirectoryToComic(string inputPath, PageList pages, string outputPath, bool append, bool includeMetadata)
+        private static bool Compress_DirectoryToComic(string inputPath, PageList pages, string outputPath, bool append, bool includeMetadata)
         {
             using (var outputComic = new ComicArchive(outputPath, append ? ComicArchiveMode.Modify : ComicArchiveMode.Create))
             {
@@ -44,6 +44,7 @@ namespace CBZTool
                         }
                         else
                         {
+                            inputMetadata.MovePagesBy(outputComic.PageCount);
                             outputComic.Metadata = inputMetadata;
                         }
                         outputComic.StoreMetadataChanges();

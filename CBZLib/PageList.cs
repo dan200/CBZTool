@@ -90,6 +90,11 @@ namespace Dan200.CBZLib
             }
         }
 
+        public void Append(int pageNumber)
+        {
+            Append(new PageRange(pageNumber));
+        }
+
         public bool Equals(PageList o)
         {
             if (m_subRanges.Count == o.m_subRanges.Count)

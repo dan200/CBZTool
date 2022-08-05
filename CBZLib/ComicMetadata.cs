@@ -20,7 +20,18 @@ namespace Dan200.CBZLib
 
     public class ComicAuthor
     {
-        public ComicRole Role;
+        private ComicRole m_role;
+        public ComicRole Role
+        {
+            get
+            {
+                return m_role;
+            }
+            set
+            {
+                m_role = value;
+            }
+        }
 
         private string m_fullName;
         public string FullName
@@ -73,12 +84,12 @@ namespace Dan200.CBZLib
 
     public class ComicContent
     {
-        public ComicContentType? ContentType;
-        public PageRange Pages;
-        public string Title;
-        public string StoryTitle;
-        public int? PartNumber;
-        public readonly List<ComicAuthor> Authors = new List<ComicAuthor>();
+        public ComicContentType? ContentType { get; set; }
+        public PageRange Pages { get; set; }
+        public string Title { get; set; }
+        public string StoryTitle { get; set; }
+        public int? PartNumber { get; set; }
+        public List<ComicAuthor> Authors { get; private set; }
 
         public ComicContent()
         {
@@ -87,6 +98,7 @@ namespace Dan200.CBZLib
             Title = null;
             StoryTitle = null;
             PartNumber = null;
+            Authors = new List<ComicAuthor>();
         }
 
         public ComicContent(ComicContent other)
@@ -96,23 +108,23 @@ namespace Dan200.CBZLib
             Title = other.Title;
             StoryTitle = other.StoryTitle;
             PartNumber = other.PartNumber;
-            Authors.AddRange(other.Authors);
+            Authors = new List<ComicAuthor>(other.Authors);
         }
 
         public override string ToString()
         {
-            if(Title != null)
+            if (StoryTitle != null)
             {
-                var title = Title;
-                if(StoryTitle != null)
-                {
-                    title += " - " + StoryTitle;
-                }
-                if(PartNumber.HasValue)
+                var title = StoryTitle;
+                if (PartNumber.HasValue)
                 {
                     title += " (Part " + PartNumber.Value + ")";
                 }
                 return title;
+            }
+            else if(Title != null)
+            {
+                return Title;
             }
             else
             {
@@ -140,7 +152,7 @@ namespace Dan200.CBZLib
         public string ScanInformation;
 
         private List<ComicContent> m_contents;
-        public List<ComicContent> Content
+        public List<ComicContent> Contents
         {
             get
             {
@@ -190,7 +202,7 @@ namespace Dan200.CBZLib
             Website = null;
             Language = null;
             ScanInformation = null;
-            Content = new List<ComicContent>();
+            Contents = new List<ComicContent>();
             Authors = new List<ComicAuthor>();
         }
 
@@ -212,11 +224,11 @@ namespace Dan200.CBZLib
             Language = other.Language;
             ScanInformation = other.ScanInformation;
 
-            Content = new List<ComicContent>();
-            Content.Capacity = other.Content.Capacity;
-            foreach(var otherContent in other.Content)
+            Contents = new List<ComicContent>();
+            Contents.Capacity = other.Contents.Capacity;
+            foreach(var otherContent in other.Contents)
             {
-                Content.Add(new ComicContent(otherContent));
+                Contents.Add(new ComicContent(otherContent));
             }
 
             Authors = new List<ComicAuthor>();
@@ -234,15 +246,24 @@ namespace Dan200.CBZLib
                 var result = SeriesTitle;
                 if(VolumeNumber.HasValue)
                 {
-                    result += " Volume " + VolumeNumber.Value;
+                    if (VolumeNumber.Value >= 1900)
+                    {
+                        // Probably a year
+                        result += " (" + VolumeNumber.Value + ")";
+                    }
+                    else
+                    {
+                        // Probably a volume number
+                        result += " (Volume " + VolumeNumber.Value + ")";
+                    }
                 }
                 if (IssueNumber.HasValue)
                 {
-                    result += " #" + IssueNumber.Value;
+                    result += " " + IssueNumber.Value;
                 }
                 if (IssueTitle != null)
                 {
-                    result += " - " + IssueTitle;
+                    result += ": " + IssueTitle;
                 }
                 return result;
             }
@@ -252,51 +273,66 @@ namespace Dan200.CBZLib
             }
             else
             {
-                return "Untitled";
+                return "Untitled Comic";
             }
         }
 
         public ComicMetadata Trim(PageList pages, int numPagesInComic)
         {
             var newMetadata = new ComicMetadata(this);
-            var newContent = new List<ComicContent>(Content.Capacity);
+            var newContent = new List<ComicContent>(Contents.Capacity);
             int pagesSoFar = 0;
             foreach (var range in pages.SubRanges)
             {
-                foreach (var content in Content)
+                foreach (var content in Contents)
                 {
                     if ((content.Pages == null) ||
                         (content.Pages.First >= range.First && content.Pages.Last <= range.Last))
                     {
-                        var contentCopy = new ComicContent(content);
                         if (content.Pages != null)
                         {
+                            var contentCopy = new ComicContent(content);
                             contentCopy.Pages = new PageRange(
                                 pagesSoFar + (content.Pages.First - range.First + 1),
                                 pagesSoFar + (content.Pages.Last - range.First + 1)
                             );
+                            newContent.Add(contentCopy);
                         }
-                        newContent.Add(contentCopy);
                     }
                 }
                 int numPagesInRange = (Math.Min(range.Last, numPagesInComic) - range.First) + 1;
                 pagesSoFar += numPagesInRange;
             }
             newContent.TrimExcess();
-            newMetadata.Content = newContent;
+            newMetadata.Contents = newContent;
             return newMetadata;
         }
 
         public void Append(ComicMetadata metadata, int numPagesInComic)
         {
-            Content.Capacity += metadata.Content.Count;
-            foreach (var content in metadata.Content)
+            Contents.Capacity += metadata.Contents.Count;
+            foreach (var content in metadata.Contents)
             {
-                if (content.Pages != null)
+                var contentCopy = new ComicContent(content);
+                if (contentCopy.Pages != null)
                 {
-                    content.Pages = new PageRange(content.Pages.First + numPagesInComic, content.Pages.Last + numPagesInComic);
+                    contentCopy.Pages = new PageRange(contentCopy.Pages.First + numPagesInComic, contentCopy.Pages.Last + numPagesInComic);
                 }
-                Content.Add(content);
+                Contents.Add(contentCopy);
+            }
+        }
+
+        public void MovePagesBy(int offset)
+        {
+            if (offset != 0)
+            {
+                foreach (var content in Contents)
+                {
+                    if (content.Pages != null)
+                    {
+                        content.Pages = new PageRange(content.Pages.First + offset, content.Pages.Last + offset);
+                    }
+                }
             }
         }
     }

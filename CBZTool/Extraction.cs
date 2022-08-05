@@ -73,6 +73,7 @@ namespace Dan200.CBZTool
                     }
                     else
                     {
+                        metadata.MovePagesBy(existingPages.Count);
                         metadata.SaveAsComicInfoFile(metadataPath);
                     }
                 }
@@ -104,7 +105,7 @@ namespace Dan200.CBZTool
                                     {
                                         filter.ApplyTo(bitmap);
                                     }
-                                    outputComic.AddPageFromBitmap(bitmap);
+                                    outputComic.AddPageFromBitmap(bitmap, ComicImageFormat.PNG); // TODO
                                 }
                             }
                         }
@@ -124,6 +125,7 @@ namespace Dan200.CBZTool
                         }
                         else
                         {
+                            inputMetadata.MovePagesBy(oldPageCount);
                             outputComic.Metadata = inputMetadata;
                         }
                         outputComic.StoreMetadataChanges();
