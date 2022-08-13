@@ -49,11 +49,6 @@ namespace Dan200.CBZLib
             }
         }
 
-        public static string GenerateNewImagePath(List<string> existingPaths, int newPageNumber, string fileExtension, string defaultDirectory = null)
-        {
-            return GenerateNewImagePaths(existingPaths, newPageNumber, 1, fileExtension, defaultDirectory)[0];
-        }
-
         public static List<string> GenerateNewImagePaths(List<string> existingPaths, int firstNewPageNumber, int count, string fileExtension, string defaultDirectory = null)
         {
             // Check arguments
@@ -68,16 +63,12 @@ namespace Dan200.CBZLib
             return GenerateNewImagePaths(previousPagePath, count, fileExtension, defaultDirectory);
         }
 
-        public static string GenerateNewImagePath(string previousImagePath, string fileExtension, string defaultDirectory = null)
-        {
-            return GenerateNewImagePaths(previousImagePath, 1, fileExtension, defaultDirectory)[0];
-        }
-
         public static List<string> GenerateNewImagePaths(string previousImagePath, int count, string fileExtension, string defaultDirectory = null)
         {
             // Determine a numbering scheme from the pages already in the file
             string suffix = string.IsNullOrEmpty(defaultDirectory) ? "" : (defaultDirectory + Path.DirectorySeparatorChar);
             int firstPageNumber = 1;
+            int minDigits = Math.Max(count.ToString().Length, 2);
             if (previousImagePath != null)
             {
                 var slashIdx = Math.Max(previousImagePath.LastIndexOf('/'), previousImagePath.LastIndexOf('\\'));
@@ -89,8 +80,7 @@ namespace Dan200.CBZLib
                     if (i == previousPageName.Length)
                     {
                         // This filename doesn't have any numbers in it: append some
-                        suffix = previousPageDir + previousPageName;
-                        firstPageNumber = 2;
+                        suffix = previousPageDir + previousPageName + "_";
                         break;
                     }
                     else if (int.TryParse(previousPageName.Substring(i), out lastPageNumber))
@@ -98,6 +88,7 @@ namespace Dan200.CBZLib
                         // This filename contains a number, increment it
                         suffix = previousPageDir + previousPageName.Substring(0, i);
                         firstPageNumber = lastPageNumber + 1;
+                        minDigits = previousPageName.Length - i;
                         break;
                     }
                 }
@@ -109,7 +100,8 @@ namespace Dan200.CBZLib
             for (int i = 0; i < count; ++i)
             {
                 int pageNumber = firstPageNumber + i;
-                results.Add(suffix + pageNumber + fileExtension);
+                string pageName = suffix + pageNumber.ToString("D" + minDigits) + fileExtension;
+                results.Add(pageName);
             }
             return results;
         }

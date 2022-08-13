@@ -377,7 +377,7 @@ namespace Dan200.CBZLib
 
             // Generate a path for the new page
             var pageIndex = GetPageIndex();
-            var entryPath = ComicExtractUtils.GenerateNewImagePath(pageIndex, pageNumber, GetDefaultExtensionForImageFormat(format));
+            var entryPath = ComicExtractUtils.GenerateNewImagePaths(pageIndex, pageNumber, 1, GetDefaultExtensionForImageFormat(format)).First();
 
             // Move other pages out of the way
             if (pageNumber <= pageIndex.Count)
@@ -426,7 +426,7 @@ namespace Dan200.CBZLib
 
             // Generate a path for the new page
             var pageIndex = GetPageIndex();
-            var entryPath = ComicExtractUtils.GenerateNewImagePath(pageIndex, pageNumber, Path.GetExtension(path));
+            var entryPath = ComicExtractUtils.GenerateNewImagePaths(pageIndex, pageNumber, 1, Path.GetExtension(path)).First();
 
             // Move other pages out of the way
             if (pageNumber <= pageIndex.Count)

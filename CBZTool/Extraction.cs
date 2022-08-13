@@ -36,21 +36,29 @@ namespace Dan200.CBZTool
                 else
                 {
                     ComicExtractUtils.EnsureDirectoryExists(outputPath);
-                    string previousImagePath = existingPages.LastOrDefault();
-                    foreach(var subRange in pages.SubRanges)
+
+                    var pagesToExtract = new List<int>();
+                    foreach (var subRange in pages.SubRanges)
                     {
                         for (int pageNum = subRange.First; pageNum <= Math.Min(subRange.Last, inputComic.PageCount); ++pageNum)
                         {
-                            string newImagePath = ComicExtractUtils.GenerateNewImagePath(previousImagePath, ".png", outputPath);
-                            using (var bitmap = inputComic.ExtractPageAsBitmap(pageNum))
+                            pagesToExtract.Add(pageNum);
+                        }
+                    }
+
+                    string previousImagePath = existingPages.LastOrDefault();
+                    var outputPaths = ComicExtractUtils.GenerateNewImagePaths(previousImagePath, pagesToExtract.Count, ".png", outputPath);
+                    for(int i=0; i<pagesToExtract.Count; ++i)
+                    {
+                        int pageNumber = pagesToExtract[i];
+                        string newImagePath = outputPaths[i];
+                        using (var bitmap = inputComic.ExtractPageAsBitmap(pageNumber))
+                        {
+                            foreach(var filter in filters)
                             {
-                                foreach(var filter in filters)
-                                {
-                                    filter.ApplyTo(bitmap);
-                                }
-                                bitmap.Save(newImagePath);
+                                filter.ApplyTo(bitmap);
                             }
-                            previousImagePath = newImagePath;
+                            bitmap.Save(newImagePath);
                         }
                     }
                 }
@@ -164,6 +172,8 @@ namespace Dan200.CBZTool
             var lastImageInDirectory = ComicExtractUtils.GetImagesInDirectory(outputPath).LastOrDefault();
 
             // Perform the extraction
+            var outputImageExtension = (filters.Count > 0) ? ".png" : Path.GetExtension(inputPath);
+            var outputImagePath = ComicExtractUtils.GenerateNewImagePaths(lastImageInDirectory, 1, outputImageExtension, outputPath).First();
             if (filters.Count > 0)
             {
                 using (var bitmap = (Bitmap)Image.FromFile(inputPath))
@@ -172,14 +182,11 @@ namespace Dan200.CBZTool
                     {
                         filter.ApplyTo(bitmap);
                     }
-
-                    var outputImagePath = ComicExtractUtils.GenerateNewImagePath(lastImageInDirectory, ".png", outputPath);
                     bitmap.Save(outputImagePath);
                 }
             }
             else
             {
-                var outputImagePath = ComicExtractUtils.GenerateNewImagePath(lastImageInDirectory, Path.GetExtension(inputPath), outputPath);
                 File.Copy(inputPath, outputImagePath);
             }
 
