@@ -111,12 +111,24 @@ namespace Dan200.CBZTool
 			return _default;
 		}
 
-		public int GetIntegerOption(string key, int _default = 0)
+		public double GetDoubleOption(string key, double _default = 0.0)
+		{
+			string arg;
+			double result;
+			if (m_options.TryGetValue(key, out arg) &&
+				double.TryParse(arg, NumberStyles.Number, CultureInfo.InvariantCulture, out result))
+			{
+				return result;
+			}
+			return _default;
+		}
+
+		public int GetIntOption(string key, int _default = 0)
 		{
 			string arg;
 			int result;
 			if (m_options.TryGetValue(key, out arg) &&
-			    int.TryParse(arg, NumberStyles.Integer, CultureInfo.InvariantCulture, out result))
+				int.TryParse(arg, NumberStyles.Integer, CultureInfo.InvariantCulture, out result))
 			{
 				return result;
 			}

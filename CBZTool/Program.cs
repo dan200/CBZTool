@@ -23,14 +23,17 @@ namespace Dan200.CBZTool
                 "Usage:" + Environment.NewLine +
                 Environment.NewLine +
                 "CBZTool extract PATH... [options]" + Environment.NewLine +
-                "  -o [directory]    Specify the directory to extract to (defaults to the input path minus the extension)" + Environment.NewLine +
+                "  -o [path]         Specify the path to extract to (defaults to the input path minus the extension). Can be a directory, another CBZ file or a PDF" + Environment.NewLine +
                 "  -p [range]        Specify the range of pages to extract (ex: 1-10 2,4,6 7-*) (default=*)" + Environment.NewLine +
-                "  -a                Appends the extracted pages to the end of the directory, instead of replacing them (default=0)" + Environment.NewLine +
+                "  -a                Appends the extracted pages to the end of the directory or file, instead of replacing them (default=0)" + Environment.NewLine +
                 "  -denoise          Runs a noise reduction algorithm on the images when extracting (default=0)" + Environment.NewLine +
                 "  -whitebalance     Runs a white balancing algorithm on the images when extracting (default=0)" + Environment.NewLine +
                 "  -flipX/Y          Flips the images when extracting (default=0)" + Environment.NewLine +
                 "  -rot90/180/270    Rotates the images when extracting (default=0)" + Environment.NewLine +
                 "  -metadata         Specify that metadata files (ComicInfo.xml) should also be extracted (default=0)" + Environment.NewLine +
+                "  -pdf:height       Specify the height of the PDF file to create, in millimetres (default=260)" + Environment.NewLine +
+                "  -pdf:width        Specify the width of the PDF file to create, in millimetres (default=auto)" + Environment.NewLine +
+                "  -pdf:bleed        Specify the bleed margin of the PDF file to create, in millimetres (default=0)" + Environment.NewLine +
                 Environment.NewLine +
                 "CBZTool compress PATH... [options]" + Environment.NewLine +
                 "  -o [file]         Specify the file to compress to (defaults to the input path with the .cbz extension appended)" + Environment.NewLine +
@@ -141,6 +144,14 @@ namespace Dan200.CBZTool
                     filters.Add(new RotateFlipFilter(RotateFlipType.Rotate270FlipNone));
                 }
 
+                var pdfExportOptions = new ComicArchive.PDFExportOptions();
+                pdfExportOptions.PageHeightInMillimetres = arguments.GetDoubleOption("pdf:height", pdfExportOptions.PageHeightInMillimetres);
+                if(arguments.GetDoubleOption("pdf:width", -1.0) > 0.0)
+                {
+                    pdfExportOptions.PageWidthInMillimetres = arguments.GetDoubleOption("pdf:width");
+                }
+                pdfExportOptions.BleedMarginInMillimetres = arguments.GetDoubleOption("pdf:bleed", pdfExportOptions.BleedMarginInMillimetres);
+
                 var inputPaths = new List<string>();
                 for (int i = 1; i < arguments.Count; ++i)
                 {
@@ -155,7 +166,7 @@ namespace Dan200.CBZTool
                 {
                     if (commonOutputPath != null)
                     {
-                        if (Extraction.Extract(inputPath, pages, filters, commonOutputPath, append, includeMetadata))
+                        if (Extraction.Extract(inputPath, pages, filters, commonOutputPath, append, includeMetadata, pdfExportOptions))
                         {
                             append = true; // If all files are being extracted to the same place, we don't want them to overwrite each other
                             includeMetadata = false; // We don't want more than one set of metadata to be added to the same file
@@ -164,7 +175,7 @@ namespace Dan200.CBZTool
                     else
                     {
                         var outputPath = Path.ChangeExtension(inputPath, null);
-                        Extraction.Extract(inputPath, pages, filters, outputPath, append, includeMetadata);
+                        Extraction.Extract(inputPath, pages, filters, outputPath, append, includeMetadata, pdfExportOptions);
                     }
                 }
             }

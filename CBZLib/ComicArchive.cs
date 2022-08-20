@@ -224,16 +224,38 @@ namespace Dan200.CBZLib
 
         public class PDFExportOptions
         {
-            public static PDFExportOptions Default = new PDFExportOptions();
+            public double PageHeightInMillimetres;
+            public double? PageWidthInMillimetres; // null = automatic
+            public double BleedMarginInMillimetres;
+            public bool Stretch;
+            public double XAlign;
+            public double YAlign;
+            public bool GenerateContentsList;
+            public bool AppendToExistingFile;
 
-            public double PageHeightInMillimetres = 270.0; // Standard US comic height
-            public double? PageWidthInMillimetres = null; // null = automatic
-            public double TrimSizeInMillimetres = 0.0;
-            public double XAlign = 0.5;
-            public double YAlign = 0.5;
-            public bool Stretch = false;
-            public bool AppendToFile = false;
-            public bool AddMetadata = true;
+            public PDFExportOptions()
+            {
+                PageHeightInMillimetres = 270.0; // Standard US comic height
+                PageWidthInMillimetres = null;
+                BleedMarginInMillimetres = 0.0;
+                Stretch = true;
+                XAlign = 0.5;
+                YAlign = 0.5;
+                GenerateContentsList = false;
+                AppendToExistingFile = false;
+            }
+
+            public PDFExportOptions(PDFExportOptions other)
+            {
+                PageHeightInMillimetres = other.PageHeightInMillimetres;
+                PageWidthInMillimetres = other.PageWidthInMillimetres;
+                BleedMarginInMillimetres = other.BleedMarginInMillimetres;
+                Stretch = other.Stretch;
+                XAlign = other.XAlign;
+                YAlign = other.YAlign;
+                GenerateContentsList = other.GenerateContentsList;
+                AppendToExistingFile = other.AppendToExistingFile;
+            }
         }
 
         public void ExtractPagesToPDF(string path, PageList pages, PDFExportOptions options)
@@ -246,7 +268,7 @@ namespace Dan200.CBZLib
             ComicExtractUtils.EnsureDirectoryExists(directory);
 
             // Start the export            
-            using (var document = options.AppendToFile ? PdfReader.Open(path, PdfDocumentOpenMode.Modify) : new PdfDocument())
+            using (var document = options.AppendToExistingFile ? PdfReader.Open(path, PdfDocumentOpenMode.Modify) : new PdfDocument())
             {
                 // Setup some info
                 document.PageLayout = PdfPageLayout.SinglePage;
@@ -272,7 +294,7 @@ namespace Dan200.CBZLib
                             {
                                 page.Width = page.Height * imageAspectRatio;
                             }
-                            page.TrimMargins.All = new XUnit(options.TrimSizeInMillimetres, XGraphicsUnit.Millimeter);
+                            page.TrimMargins.All = new XUnit(options.BleedMarginInMillimetres, XGraphicsUnit.Millimeter);
 
                             // Determine the image size
                             var totalPageHeight = page.Height + page.TrimMargins.Top + page.TrimMargins.Bottom;
@@ -310,43 +332,40 @@ namespace Dan200.CBZLib
                     }
                 }
 
-                if (options.AddMetadata)
+                // Get metadata
+                var metadata = LoadMetadata();
+                if (metadata != null)
                 {
-                    // Get metadata
-                    var metadata = LoadMetadata();
-                    if (metadata != null)
+                    // Trim metadata
+                    if(pages != PageList.All)
                     {
-                        // Trim metadata
-                        if(pages != PageList.All)
-                        {
-                            metadata = metadata.Trim(pages, PageCount);
-                        }
+                        metadata = metadata.Trim(pages, PageCount);
+                    }
 
-                        // Store document info
-                        document.Info.Title = metadata.ToString();
-                        if (metadata.Publisher != null)
-                        {
-                            document.Info.Author = metadata.Publisher;
-                        }
+                    // Store document info
+                    document.Info.Title = metadata.ToString();
+                    if (metadata.Publisher != null)
+                    {
+                        document.Info.Author = metadata.Publisher;
+                    }
 
-                        // Store contents
-                        if (metadata.Contents.Count > 0)
+                    // Store contents
+                    if (metadata.Contents.Count > 0 && document.Pages.Count > 0 && options.GenerateContentsList)
+                    {
+                        var rootOutline = document.Outlines.Where(outline => outline.Title.Equals("Contents")).FirstOrDefault();
+                        if (rootOutline == null)
                         {
-                            var rootOutline = document.Outlines.Where(outline => outline.Title.Equals("Contents")).FirstOrDefault();
-                            if (rootOutline == null)
+                            rootOutline = document.Outlines.Add("Contents", document.Pages[0], true, PdfOutlineStyle.Bold, XColors.Black);
+                        }
+                        foreach (var content in metadata.Contents)
+                        {
+                            if (content.Pages != null)
                             {
-                                rootOutline = document.Outlines.Add("Contents", document.Pages[0], true, PdfOutlineStyle.Bold, XColors.Black);
-                            }
-                            foreach (var content in metadata.Contents)
-                            {
-                                if (content.Pages != null)
+                                int firstPageNumber = previousPageCount + content.Pages.First;
+                                if (firstPageNumber >= 1 && firstPageNumber <= document.Pages.Count)
                                 {
-                                    int firstPageNumber = previousPageCount + content.Pages.First;
-                                    if (firstPageNumber >= 1 && firstPageNumber <= document.Pages.Count)
-                                    {
-                                        var title = content.ToString();
-                                        rootOutline.Outlines.Add(title, document.Pages[firstPageNumber - 1]);
-                                    }
+                                    var title = content.ToString();
+                                    rootOutline.Outlines.Add(title, document.Pages[firstPageNumber - 1]);
                                 }
                             }
                         }

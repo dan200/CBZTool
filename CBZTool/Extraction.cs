@@ -143,15 +143,15 @@ namespace Dan200.CBZTool
             return true;
         }
 
-        private static bool Extract_ComicToPDF(string inputPath, PageList pages, string outputPath, bool append, bool includeMetadata)
+        private static bool Extract_ComicToPDF(string inputPath, PageList pages, string outputPath, bool append, bool includeMetadata, ComicArchive.PDFExportOptions pdfOptions)
         {
             using (var inputComic = new ComicArchive(inputPath, ComicArchiveMode.Read))
             {
                 // Copy pages
-                var pdfOptions = new ComicArchive.PDFExportOptions();
-                pdfOptions.AppendToFile = append;
-                pdfOptions.AddMetadata = includeMetadata;
-                inputComic.ExtractPagesToPDF(outputPath, pages, pdfOptions);
+                var pdfOptionsCopy = new ComicArchive.PDFExportOptions(pdfOptions);
+                pdfOptionsCopy.AppendToExistingFile |= append;
+                pdfOptionsCopy.GenerateContentsList |= includeMetadata;
+                inputComic.ExtractPagesToPDF(outputPath, pages, pdfOptionsCopy);
             }
             return true;
         }
@@ -193,7 +193,7 @@ namespace Dan200.CBZTool
             return true;
         }
 
-        public static bool Extract(string inputPath, PageList pages, IList<IImageFilter> filters, string outputPath, bool append, bool includeMetadata)
+        public static bool Extract(string inputPath, PageList pages, IList<IImageFilter> filters, string outputPath, bool append, bool includeMetadata, ComicArchive.PDFExportOptions pdfOptions)
         {
             if (File.Exists(inputPath))
             {
@@ -220,7 +220,7 @@ namespace Dan200.CBZTool
                         if (filters.Count == 0)
                         {
                             Console.WriteLine("Extracting pages {0} from {1} to {2}", pages, inputPath, outputPath);
-                            return Extract_ComicToPDF(inputPath, pages, outputPath, append, includeMetadata);
+                            return Extract_ComicToPDF(inputPath, pages, outputPath, append, includeMetadata, pdfOptions);
                         }
                         else
                         {
