@@ -31,9 +31,9 @@ namespace Dan200.CBZTool
                 "  -flipX/Y          Flips the images when extracting (default=0)" + Environment.NewLine +
                 "  -rot90/180/270    Rotates the images when extracting (default=0)" + Environment.NewLine +
                 "  -metadata         Specify that metadata files (ComicInfo.xml) should also be extracted (default=0)" + Environment.NewLine +
-                "  -pdf:height       Specify the height of the PDF file to create, in millimetres (default=260)" + Environment.NewLine +
-                "  -pdf:width        Specify the width of the PDF file to create, in millimetres (default=auto)" + Environment.NewLine +
-                "  -pdf:bleed        Specify the bleed margin of the PDF file to create, in millimetres (default=0)" + Environment.NewLine +
+                "  -pdf:height       When extracting to PDF, specify the height of each page in millimetres (default=260)" + Environment.NewLine +
+                "  -pdf:width        When extracting to PDF, specify the width of each page in millimetres (default=auto)" + Environment.NewLine +
+                "  -pdf:bleed        When extracting to PDF, specify the bleed margin of each page in millimetres (default=0)" + Environment.NewLine +
                 Environment.NewLine +
                 "CBZTool compress PATH... [options]" + Environment.NewLine +
                 "  -o [file]         Specify the file to compress to (defaults to the input path with the .cbz extension appended)" + Environment.NewLine +
