@@ -66,8 +66,12 @@ namespace Dan200.CBZTool
                         int rangeStartNum, rangeEndNum;
                         if(int.TryParse(rangeStartStr, out rangeStartNum) && int.TryParse(rangeEndStr, out rangeEndNum))
                         {
-                            // Numeric range (ie: 1..10, 100..1)
-                            int minDigits = Math.Max(rangeStartStr.Length, rangeEndStr.Length);
+                            // Numeric range (ie: 1..100, 100..1, 001-100)
+                            int minDigits = 0;
+                            if (rangeStartStr.Length > rangeStartNum.ToString().Length || rangeEndStr.Length > rangeEndNum.ToString().Length)
+                            {
+                                minDigits = Math.Max(rangeStartStr.Length, rangeEndStr.Length);
+                            }
                             int increment = (rangeEndNum >= rangeStartNum) ? 1 : -1;
                             for (int i = rangeStartNum; i != (rangeEndNum + increment); i += increment)
                             {
@@ -76,7 +80,7 @@ namespace Dan200.CBZTool
                         }
                         else if(rangeStartStr.Length == 1 && rangeEndStr.Length == 1)
                         {
-                            // Character range (ie: a..z)
+                            // Character range (ie: a..z, z-a)
                             char rangeStartChr = rangeStartStr[0];
                             char rangeEndChr = rangeEndStr[0];
                             int increment = (rangeEndChr >= rangeStartChr) ? 1 : -1;
