@@ -43,39 +43,96 @@ namespace Dan200.CBZTool
             );
         }
        
-        private static string[] ExpandWildcardPath(string path, bool includeFiles, bool includeDirs)
+        private static string[] ExpandPath(string path, bool includeFiles, bool includeDirs)
         {
-            if(!path.Contains("*"))
-            {
-                return new string[] { path };
-            }
-
-            var dirPart = Path.GetDirectoryName(path);
-            if (dirPart == null || dirPart.Length == 0)
-            {
-                dirPart = ".";
-            }
-
-            var filePart = Path.GetFileName(path);
             var paths = new List<string>();
-            if (Directory.Exists(dirPart))
+
+            int braceStartIdx = path.IndexOf('{');
+            int braceEndIdx = path.IndexOf('}', braceStartIdx + 1);
+            if (braceStartIdx >= 0 && braceEndIdx >= 0)
             {
-                if (includeDirs)
+                // Expand brace syntax (ie: {a,b,c} {1..10})
+                var prefix = path.Substring(0, braceStartIdx);
+                var suffix = path.Substring(braceEndIdx + 1);
+                var braceParts = path.Substring(braceStartIdx + 1, braceEndIdx - (braceStartIdx + 1));
+                foreach(var bracePart in braceParts.Split(new char[] { ',' }, StringSplitOptions.None))
                 {
-                    foreach (var filepath in Directory.GetDirectories(dirPart, filePart))
+                    var rangeSeperatorIdx = bracePart.IndexOf("..");
+                    if(rangeSeperatorIdx >= 0)
                     {
-                        paths.Add(filepath);
+                        // Range (ie: 1..10, a-z)
+                        var rangeStartStr = bracePart.Substring(0, rangeSeperatorIdx);
+                        var rangeEndStr = bracePart.Substring(rangeSeperatorIdx + 2);
+                        int rangeStartNum, rangeEndNum;
+                        if(int.TryParse(rangeStartStr, out rangeStartNum) && int.TryParse(rangeEndStr, out rangeEndNum))
+                        {
+                            // Numeric range (ie: 1..10, 100..1)
+                            int minDigits = Math.Max(rangeStartStr.Length, rangeEndStr.Length);
+                            int increment = (rangeEndNum >= rangeStartNum) ? 1 : -1;
+                            for (int i = rangeStartNum; i != (rangeEndNum + increment); i += increment)
+                            {
+                                paths.Add(prefix + i.ToString("D" + minDigits) + suffix);
+                            }
+                        }
+                        else if(rangeStartStr.Length == 1 && rangeEndStr.Length == 1)
+                        {
+                            // Character range (ie: a..z)
+                            char rangeStartChr = rangeStartStr[0];
+                            char rangeEndChr = rangeEndStr[0];
+                            int increment = (rangeEndChr >= rangeStartChr) ? 1 : -1;
+                            for (int i = rangeStartChr; i != (rangeEndChr + increment); i += increment)
+                            {
+                                paths.Add(prefix + (char)i + suffix);
+                            }
+                        }
+                        else
+                        {
+                            // Unsupported range (ie: hello..world)
+                            paths.Add(prefix + bracePart + suffix);
+                        }
+                    }
+                    else
+                    {
+                        paths.Add(prefix + bracePart + suffix);
                     }
                 }
-                if (includeFiles)
+            }
+            else if(path.Contains("*"))
+            {
+                // Expand wildcard syntax (ie: *.jpg)
+                var dirPart = Path.GetDirectoryName(path);
+                if (dirPart == null || dirPart.Length == 0)
                 {
-                    foreach (var filepath in Directory.GetFiles(dirPart, filePart))
+                    dirPart = ".";
+                }
+
+                var filePart = Path.GetFileName(path);
+                if (Directory.Exists(dirPart))
+                {
+                    if (includeDirs)
                     {
-                        paths.Add(filepath);
+                        foreach (var filepath in Directory.GetDirectories(dirPart, filePart))
+                        {
+                            paths.Add(filepath);
+                        }
+                    }
+                    if (includeFiles)
+                    {
+                        foreach (var filepath in Directory.GetFiles(dirPart, filePart))
+                        {
+                            paths.Add(filepath);
+                        }
                     }
                 }
                 paths.Sort(AlphaNumericComparator.Instance);
             }
+            else
+            {
+                // Nothing to expand
+                paths.Add(path);
+            }
+
+            // Return
             return paths.ToArray();
         }
 
@@ -155,7 +212,7 @@ namespace Dan200.CBZTool
                 var inputPaths = new List<string>();
                 for (int i = 1; i < arguments.Count; ++i)
                 {
-                    foreach(var str in ExpandWildcardPath(arguments.Get(i).Trim(), true, false))
+                    foreach(var str in ExpandPath(arguments.Get(i).Trim(), true, false))
                     {
                         inputPaths.Add(str);
                     }
@@ -204,7 +261,7 @@ namespace Dan200.CBZTool
                 var inputPaths = new List<string>();
                 for (int i = 1; i < arguments.Count; ++i)
                 {
-                    foreach (var str in ExpandWildcardPath(arguments.Get(i).Trim(), true, true))
+                    foreach (var str in ExpandPath(arguments.Get(i).Trim(), true, true))
                     {
                         inputPaths.Add(str);
                     }
