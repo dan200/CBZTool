@@ -22,6 +22,8 @@ namespace Dan200.CBZTool
             Console.WriteLine(
                 "Usage:" + Environment.NewLine +
                 Environment.NewLine +
+                "CBZTool info PATH..." + Environment.NewLine +
+                Environment.NewLine +
                 "CBZTool extract PATH... [options]" + Environment.NewLine +
                 "  -o [path]         Specify the path to extract to (defaults to the input path minus the extension). Can be a directory, another CBZ file or a PDF" + Environment.NewLine +
                 "  -p [range]        Specify the range of pages to extract (ex: 1-10 2,4,6 7-*) (default=*)" + Environment.NewLine +
@@ -60,13 +62,13 @@ namespace Dan200.CBZTool
                     var rangeSeperatorIdx = bracePart.IndexOf("..");
                     if(rangeSeperatorIdx >= 0)
                     {
-                        // Range (ie: 1..10, a-z)
+                        // Range (ex: 1..10, a-z)
                         var rangeStartStr = bracePart.Substring(0, rangeSeperatorIdx);
                         var rangeEndStr = bracePart.Substring(rangeSeperatorIdx + 2);
                         int rangeStartNum, rangeEndNum;
                         if(int.TryParse(rangeStartStr, out rangeStartNum) && int.TryParse(rangeEndStr, out rangeEndNum))
                         {
-                            // Numeric range (ie: 1..100, 100..1, 001-100)
+                            // Numeric range (ex: 1..100, 100..1, 001-100)
                             int minDigits = 0;
                             if (rangeStartStr.Length > rangeStartNum.ToString().Length || rangeEndStr.Length > rangeEndNum.ToString().Length)
                             {
@@ -80,7 +82,7 @@ namespace Dan200.CBZTool
                         }
                         else if(rangeStartStr.Length == 1 && rangeEndStr.Length == 1)
                         {
-                            // Character range (ie: a..z, z-a)
+                            // Character range (ex: a..z, z-a)
                             char rangeStartChr = rangeStartStr[0];
                             char rangeEndChr = rangeEndStr[0];
                             int increment = (rangeEndChr >= rangeStartChr) ? 1 : -1;
@@ -91,12 +93,13 @@ namespace Dan200.CBZTool
                         }
                         else
                         {
-                            // Unsupported range (ie: hello..world)
+                            // Unsupported range (ex: hello..world)
                             paths.Add(prefix + bracePart + suffix);
                         }
                     }
                     else
                     {
+                        // String without range (ex: hello)
                         paths.Add(prefix + bracePart + suffix);
                     }
                 }
@@ -153,7 +156,32 @@ namespace Dan200.CBZTool
         public static void Main(string[] args)
         {
             var arguments = new ProgramArguments(args);
-            if(arguments.Count >= 2 && arguments.Get(0) == "extract")
+            if (arguments.Count >= 2 && arguments.Get(0) == "info")
+            {
+                // Print info for one or more files:
+                // Gather paths
+                var inputPaths = new List<string>();
+                for (int i = 1; i < arguments.Count; ++i)
+                {
+                    foreach (var str in ExpandPath(arguments.Get(i).Trim(), true, false))
+                    {
+                        inputPaths.Add(str);
+                    }
+                }
+
+                // Print the info
+                bool firstFile = true;
+                foreach (var inputPath in inputPaths)
+                {
+                    if (!firstFile)
+                    {
+                        Console.WriteLine();
+                    }
+                    InfoCommand.PrintInfo(inputPath);
+                    firstFile = false;
+                }
+            }
+            else if (arguments.Count >= 2 && arguments.Get(0) == "extract")
             {
                 // Extract one or more files:
 
@@ -227,7 +255,7 @@ namespace Dan200.CBZTool
                 {
                     if (commonOutputPath != null)
                     {
-                        if (Extraction.Extract(inputPath, pages, filters, commonOutputPath, append, includeMetadata, pdfExportOptions))
+                        if (ExtractCommand.Extract(inputPath, pages, filters, commonOutputPath, append, includeMetadata, pdfExportOptions))
                         {
                             append = true; // If all files are being extracted to the same place, we don't want them to overwrite each other
                             includeMetadata = false; // We don't want more than one set of metadata to be added to the same file
@@ -236,7 +264,7 @@ namespace Dan200.CBZTool
                     else
                     {
                         var outputPath = Path.ChangeExtension(inputPath, null);
-                        Extraction.Extract(inputPath, pages, filters, outputPath, append, includeMetadata, pdfExportOptions);
+                        ExtractCommand.Extract(inputPath, pages, filters, outputPath, append, includeMetadata, pdfExportOptions);
                     }
                 }
             }
@@ -276,7 +304,7 @@ namespace Dan200.CBZTool
                 {
                     if (commonOutputPath != null)
                     {
-                        if (Compression.Compress(inputPath, pages, commonOutputPath, append, includeMetadata))
+                        if (CompressCommand.Compress(inputPath, pages, commonOutputPath, append, includeMetadata))
                         {
                             append = true; // If all directories are being compressed to the same file, we don't want their contents to overwrite each other
                             includeMetadata = false; // We don't want more than one set of metadata to be added to the same file
@@ -285,7 +313,7 @@ namespace Dan200.CBZTool
                     else
                     {
                         var outputFile = Path.ChangeExtension( inputPath, ".cbz" );
-                        Compression.Compress(inputPath, pages, outputFile, append, includeMetadata);
+                        CompressCommand.Compress(inputPath, pages, outputFile, append, includeMetadata);
                     }
                 }
             }

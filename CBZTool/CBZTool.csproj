@@ -60,13 +60,17 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Compression.cs" />
-    <Compile Include="Extraction.cs" />
+    <Compile Include="CompressCommand.cs" />
+    <Compile Include="InfoCommand.cs" />
+    <Compile Include="ExtractCommand.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="ProgramArguments.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\.editorconfig">
+      <Link>.editorconfig</Link>
+    </None>
     <None Include="App.config" />
     <None Include="packages.config" />
   </ItemGroup>

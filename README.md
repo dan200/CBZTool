@@ -36,8 +36,10 @@ CBZTool extract MyComic.cbz -o MyEnhancedComic.cbz -denoise -whitebalance
 ## All options
 
 ```
+CBZ info PATH...
+
 CBZTool extract PATH... [options]
-  -o [path]         Specify the directory, CBZ or PDF file to extract to (defaults to the input path minus the extension)
+  -o [path]         Specify the path to extract to (defaults to the input path minus the extension). Can be a directory, another CBZ file or a PDF
   -p [range]        Specify the range of pages to extract (ex: 1-10 2,4,6 7-*) (default=*)
   -a                Appends the extracted pages to the end of the directory, instead of replacing them (default=0)
   -denoise          Runs a noise reduction algorithm on the images when extracting (default=0)
@@ -45,6 +47,9 @@ CBZTool extract PATH... [options]
   -flipX/Y          Flips the images when extracting (default=0)
   -rot90/180/270    Rotates the images when extracting (default=0)
   -metadata         Specify that metadata (ComicInfo.xml) should also be extracted (default=0)
+  -pdf:height       When extracting to PDF, specify the height of each page in millimetres (default=260)
+  -pdf:width        When extracting to PDF, specify the width of each page in millimetres (default=auto)
+  -pdf:bleed        When extracting to PDF, specify the bleed margin of each page in millimetres (default=0)
 
 CBZTool compress PATH... [options]
   -o [directory]    Specify the file to compress to (defaults to the input path with the .cbz extension appended)

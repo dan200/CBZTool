@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Dan200.CBZTool
 {
-    internal static class Extraction
+    internal static class ExtractCommand
     {
         private static bool Extract_ComicToDirectory(string inputPath, PageList pages, IList<IImageFilter> filters, string outputPath, bool append, bool includeMetadata)
         {

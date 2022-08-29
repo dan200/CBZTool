@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace CBZTool
 {
-    internal static class Compression
+    internal static class CompressCommand
     {
         private static bool Compress_ImageFileToComic(string inputPath, string outputPath, bool append)
         {
