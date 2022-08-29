@@ -185,6 +185,7 @@ namespace Dan200.CBZTool
                 {
                     Console.WriteLine("This comic has no metadata", inputComic.PageCount);
                 }
+                Console.WriteLine();
             }
             return true;
         }

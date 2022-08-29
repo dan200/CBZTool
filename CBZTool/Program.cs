@@ -171,15 +171,9 @@ namespace Dan200.CBZTool
                 }
 
                 // Print the info
-                bool firstFile = true;
                 foreach (var inputPath in inputPaths)
                 {
-                    if (!firstFile)
-                    {
-                        Console.WriteLine();
-                    }
                     InfoCommand.PrintInfo(inputPath);
-                    firstFile = false;
                 }
             }
             else if (arguments.Count >= 2 && arguments.Get(0) == "extract")
