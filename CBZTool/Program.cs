@@ -23,6 +23,7 @@ namespace Dan200.CBZTool
                 "Usage:" + Environment.NewLine +
                 Environment.NewLine +
                 "CBZTool info PATH..." + Environment.NewLine +
+                "  (no options)" + Environment.NewLine +
                 Environment.NewLine +
                 "CBZTool extract PATH... [options]" + Environment.NewLine +
                 "  -o [path]         Specify the path to extract to (defaults to the input path minus the extension). Can be a directory, another CBZ file or a PDF" + Environment.NewLine +

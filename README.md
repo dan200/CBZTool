@@ -37,6 +37,7 @@ CBZTool extract MyComic.cbz -o MyEnhancedComic.cbz -denoise -whitebalance
 
 ```
 CBZ info PATH...
+  (no options)
 
 CBZTool extract PATH... [options]
   -o [path]         Specify the path to extract to (defaults to the input path minus the extension). Can be a directory, another CBZ file or a PDF
