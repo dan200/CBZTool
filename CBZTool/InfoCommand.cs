@@ -166,7 +166,7 @@ namespace Dan200.CBZTool
                         Console.WriteLine("Authors:");
                         foreach (var author in authors)
                         {
-                            if (author.PagesAuthored == inputComic.PageCount)
+                            if (author.PagesAuthored >= inputComic.PageCount)
                             {
                                 Console.WriteLine("{0} ({1})", author.Name, author.Role);
                             }
