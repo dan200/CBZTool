@@ -42,6 +42,7 @@ namespace Dan200.CBZLib
         private List<string> m_pageIndex;
         private ComicMetadata m_metadata;
         private bool m_metadataLoaded;
+        private bool m_metadataEverSaved;
 
         public string FilePath
         {
@@ -173,6 +174,13 @@ namespace Dan200.CBZLib
 
         public Bitmap ExtractPageAsBitmap(int pageNum)
         {
+            // Check arguments
+            if(m_openMode == ComicArchiveMode.Create)
+            {
+                throw new InvalidOperationException("This archive is not readable");
+            }
+
+            // Read the image
             string entryPath = GetPageEntryPath(pageNum);
             var inputStream = OpenEntryForRead(entryPath);
             if (!(inputStream is MemoryStream))
@@ -204,6 +212,12 @@ namespace Dan200.CBZLib
 
         public void ExtractPagesToDirectory(string path, PageList pages)
         {
+            // Check arguments
+            if (m_openMode == ComicArchiveMode.Create)
+            {
+                throw new InvalidOperationException("This archive is not readable");
+            }
+
             // Build a list of entries to export
             var entriesToExport = GetPageEntryPaths(pages);
 
@@ -260,6 +274,12 @@ namespace Dan200.CBZLib
 
         public void ExtractPagesToPDF(string path, PageList pages, PDFExportOptions options)
         {
+            // Check arguments
+            if (m_openMode == ComicArchiveMode.Create)
+            {
+                throw new InvalidOperationException("This archive is not readable");
+            }
+
             // Build a list of entries to export
             var entriesToExport = GetPageEntryPaths(pages);
 
@@ -401,6 +421,10 @@ namespace Dan200.CBZLib
             // Move other pages out of the way
             if (pageNumber <= pageIndex.Count)
             {
+                if(m_openMode == ComicArchiveMode.Create)
+                {
+                    throw new InvalidOperationException("New archives can only be appended to");
+                }
                 RenamePagesForInsert(pageNumber, entryPath);
             }
 
@@ -450,6 +474,10 @@ namespace Dan200.CBZLib
             // Move other pages out of the way
             if (pageNumber <= pageIndex.Count)
             {
+                if (m_openMode == ComicArchiveMode.Create)
+                {
+                    throw new InvalidOperationException("New pages may only be added to the end of archives opened with ComicArchiveMode.Create");
+                }
                 RenamePagesForInsert(pageNumber, entryPath);
             }
 
@@ -490,6 +518,10 @@ namespace Dan200.CBZLib
             // Move other pages out of the way
             if (pageNumber <= pageIndex.Count)
             {
+                if (m_openMode == ComicArchiveMode.Create)
+                {
+                    throw new InvalidOperationException("New pages may only be added to the end of archives opened with ComicArchiveMode.Create");
+                }
                 RenamePagesForInsert(pageNumber, entryPaths.Last());
             }
 
@@ -537,6 +569,10 @@ namespace Dan200.CBZLib
             // Move other pages out of the way
             if (pageNumber <= pageIndex.Count)
             {
+                if (m_openMode == ComicArchiveMode.Create)
+                {
+                    throw new InvalidOperationException("New pages may only be added to the end of archives opened with ComicArchiveMode.Create");
+                }
                 RenamePagesForInsert(pageNumber, entryPaths.Last());
             }
 
@@ -562,7 +598,7 @@ namespace Dan200.CBZLib
         public void DeletePage(int pageNumber)
         {
             // Check permissions
-            if (m_openMode == ComicArchiveMode.Read)
+            if (m_openMode != ComicArchiveMode.Modify)
             {
                 throw new InvalidOperationException("This archive is not writable");
             }
@@ -578,7 +614,7 @@ namespace Dan200.CBZLib
         public void DeletePages(PageList pages)
         {
             // Check permissions
-            if (m_openMode == ComicArchiveMode.Read)
+            if (m_openMode != ComicArchiveMode.Modify)
             {
                 throw new InvalidOperationException("This archive is not writable");
             }
@@ -641,7 +677,7 @@ namespace Dan200.CBZLib
                         var directory = Path.GetDirectoryName(path);
                         ComicExtractUtils.EnsureDirectoryExists(directory);
                     }
-                    m_zipArchive = ZipFile.Open(path, ZipArchiveMode.Update);
+                    m_zipArchive = ZipFile.Open(path, ZipArchiveMode.Create);
                     m_pageIndex = new List<string>();
                     m_metadataLoaded = true;
                     break;
@@ -667,12 +703,19 @@ namespace Dan200.CBZLib
             {
                 throw new InvalidOperationException("This archive is not writable");
             }
+            if(m_openMode == ComicArchiveMode.Create && m_metadataEverSaved)
+            {
+                throw new InvalidOperationException("Metadata may only be saved one time for archives opened with ComicArchiveMode.Create");
+            }
             var metadata = LoadMetadata();
             if (metadata != null)
             {
                 // Replace metadata
-                DeleteEntry("ComicInfo.xml");
-                DeleteEntry("tag.txt");
+                if (m_openMode == ComicArchiveMode.Modify)
+                {
+                    DeleteEntry("ComicInfo.xml");
+                    DeleteEntry("tag.txt");
+                }
                 using (var stream = CreateNewEntry("ComicInfo.xml"))
                 {
                     metadata.SaveAsComicInfoFile(stream);
@@ -681,9 +724,13 @@ namespace Dan200.CBZLib
             else
             {
                 // Delete metadata
-                DeleteEntry("ComicInfo.xml");
-                DeleteEntry("tag.txt");
+                if (m_openMode == ComicArchiveMode.Modify)
+                {
+                    DeleteEntry("ComicInfo.xml");
+                    DeleteEntry("tag.txt");
+                }
             }
+            m_metadataEverSaved = true;
         }
 
         public void RevertMetadataChanges()
