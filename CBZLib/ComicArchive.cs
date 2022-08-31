@@ -291,7 +291,7 @@ namespace Dan200.CBZLib
             using (var document = options.AppendToExistingFile ? PdfReader.Open(path, PdfDocumentOpenMode.Modify) : new PdfDocument())
             {
                 // Setup some info
-                document.PageLayout = PdfPageLayout.SinglePage;
+                document.PageLayout = PdfPageLayout.TwoColumnRight;
 
                 // Add pages
                 var previousPageCount = document.PageCount;
