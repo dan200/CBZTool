@@ -249,7 +249,7 @@ namespace Dan200.CBZLib
 
             public PDFExportOptions()
             {
-                PageHeightInMillimetres = 270.0; // Standard US comic height
+                PageHeightInMillimetres = 260.0; // Standard US comic height
                 PageWidthInMillimetres = null;
                 BleedMarginInMillimetres = 0.0;
                 Stretch = true;
