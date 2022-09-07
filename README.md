@@ -51,6 +51,7 @@ CBZTool extract PATH... [options]
   -pdf:height       When extracting to PDF, specify the height of each page in millimetres (default=260)
   -pdf:width        When extracting to PDF, specify the width of each page in millimetres (default=auto)
   -pdf:bleed        When extracting to PDF, specify the bleed margin of each page in millimetres (default=0)
+  -pdf:stretch      When extracting to PDF, specify that images should be stretched if the aspect ratio of the image does not match the aspect ratio of the page (default=0)
 
 CBZTool compress PATH... [options]
   -o [directory]    Specify the file to compress to (defaults to the input path with the .cbz extension appended)

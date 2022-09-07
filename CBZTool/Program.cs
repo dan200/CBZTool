@@ -37,6 +37,7 @@ namespace Dan200.CBZTool
                 "  -pdf:height       When extracting to PDF, specify the height of each page in millimetres (default=260)" + Environment.NewLine +
                 "  -pdf:width        When extracting to PDF, specify the width of each page in millimetres (default=auto)" + Environment.NewLine +
                 "  -pdf:bleed        When extracting to PDF, specify the bleed margin of each page in millimetres (default=0)" + Environment.NewLine +
+                "  -pdf:stretch      When extracting to PDF, specify that images should be stretched if the aspect ratio of the image does not match the aspect ratio of the page (default=0)" + Environment.NewLine +
                 Environment.NewLine +
                 "CBZTool compress PATH... [options]" + Environment.NewLine +
                 "  -o [file]         Specify the file to compress to (defaults to the input path with the .cbz extension appended)" + Environment.NewLine +
@@ -235,6 +236,7 @@ namespace Dan200.CBZTool
                     pdfExportOptions.PageWidthInMillimetres = arguments.GetDoubleOption("pdf:width");
                 }
                 pdfExportOptions.BleedMarginInMillimetres = arguments.GetDoubleOption("pdf:bleed", pdfExportOptions.BleedMarginInMillimetres);
+                pdfExportOptions.Stretch = arguments.GetBoolOption("pdf:stretch", false);
 
                 var inputPaths = new List<string>();
                 for (int i = 1; i < arguments.Count; ++i)
