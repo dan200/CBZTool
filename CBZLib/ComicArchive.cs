@@ -249,7 +249,7 @@ namespace Dan200.CBZLib
 
             public PDFExportOptions()
             {
-                PageHeightInMillimetres = 270.0; // Standard US comic height
+                PageHeightInMillimetres = 260.0; // Standard US comic height
                 PageWidthInMillimetres = null;
                 BleedMarginInMillimetres = 0.0;
                 Stretch = true;
@@ -291,7 +291,7 @@ namespace Dan200.CBZLib
             using (var document = options.AppendToExistingFile ? PdfReader.Open(path, PdfDocumentOpenMode.Modify) : new PdfDocument())
             {
                 // Setup some info
-                document.PageLayout = PdfPageLayout.SinglePage;
+                document.PageLayout = PdfPageLayout.TwoColumnRight;
 
                 // Add pages
                 var previousPageCount = document.PageCount;
