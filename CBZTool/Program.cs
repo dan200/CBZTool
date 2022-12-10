@@ -235,7 +235,8 @@ namespace Dan200.CBZTool
                 {
                     pdfExportOptions.PageWidthInMillimetres = arguments.GetDoubleOption("pdf:width");
                 }
-                pdfExportOptions.BleedMarginInMillimetres = arguments.GetDoubleOption("pdf:bleed", pdfExportOptions.BleedMarginInMillimetres);
+                pdfExportOptions.HorizontalBleedInMillimetres = arguments.GetDoubleOption("pdf:xbleed", arguments.GetDoubleOption("pdf:bleed", pdfExportOptions.HorizontalBleedInMillimetres));
+                pdfExportOptions.VerticalBleedInMillimetres = arguments.GetDoubleOption("pdf:ybleed", arguments.GetDoubleOption("pdf:bleed", pdfExportOptions.VerticalBleedInMillimetres));
                 pdfExportOptions.Stretch = arguments.GetBoolOption("pdf:stretch", false);
 
                 var inputPaths = new List<string>();

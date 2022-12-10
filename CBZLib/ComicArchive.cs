@@ -240,7 +240,8 @@ namespace Dan200.CBZLib
         {
             public double PageHeightInMillimetres;
             public double? PageWidthInMillimetres; // null = automatic
-            public double BleedMarginInMillimetres;
+            public double HorizontalBleedInMillimetres;
+            public double VerticalBleedInMillimetres;
             public bool Stretch;
             public double XAlign;
             public double YAlign;
@@ -251,7 +252,8 @@ namespace Dan200.CBZLib
             {
                 PageHeightInMillimetres = 260.0; // Standard US comic height
                 PageWidthInMillimetres = null;
-                BleedMarginInMillimetres = 0.0;
+                HorizontalBleedInMillimetres = 0.0;
+                VerticalBleedInMillimetres = 0.0;
                 Stretch = true;
                 XAlign = 0.5;
                 YAlign = 0.5;
@@ -263,7 +265,8 @@ namespace Dan200.CBZLib
             {
                 PageHeightInMillimetres = other.PageHeightInMillimetres;
                 PageWidthInMillimetres = other.PageWidthInMillimetres;
-                BleedMarginInMillimetres = other.BleedMarginInMillimetres;
+                HorizontalBleedInMillimetres = other.HorizontalBleedInMillimetres;
+                VerticalBleedInMillimetres = other.VerticalBleedInMillimetres;
                 Stretch = other.Stretch;
                 XAlign = other.XAlign;
                 YAlign = other.YAlign;
@@ -303,22 +306,25 @@ namespace Dan200.CBZLib
                         {
                             var page = document.AddPage();
 
-                            // Set the page dimensions
+                            // Set the page dimensions and bleed
                             var imageAspectRatio = (double)image.PixelWidth / (double)image.PixelHeight;
                             page.Height = new XUnit(options.PageHeightInMillimetres, XGraphicsUnit.Millimeter);
+                            page.TrimMargins.Left = new XUnit(options.HorizontalBleedInMillimetres, XGraphicsUnit.Millimeter);
+                            page.TrimMargins.Right = new XUnit(options.HorizontalBleedInMillimetres, XGraphicsUnit.Millimeter);
+                            page.TrimMargins.Top = new XUnit(options.VerticalBleedInMillimetres, XGraphicsUnit.Millimeter);
+                            page.TrimMargins.Bottom = new XUnit(options.VerticalBleedInMillimetres, XGraphicsUnit.Millimeter);
+                            var totalPageHeight = page.Height + page.TrimMargins.Top + page.TrimMargins.Bottom;
                             if (options.PageWidthInMillimetres.HasValue)
                             {
                                 page.Width = new XUnit(options.PageWidthInMillimetres.Value, XGraphicsUnit.Millimeter);
                             }
                             else
                             {
-                                page.Width = page.Height * imageAspectRatio;
+                                page.Width = (totalPageHeight * imageAspectRatio) - page.TrimMargins.Left - page.TrimMargins.Right;
                             }
-                            page.TrimMargins.All = new XUnit(options.BleedMarginInMillimetres, XGraphicsUnit.Millimeter);
+                            var totalPageWidth = page.Width + page.TrimMargins.Left + page.TrimMargins.Right;
 
                             // Determine the image size
-                            var totalPageHeight = page.Height + page.TrimMargins.Top + page.TrimMargins.Bottom;
-                            var totalPageWidth = page.Width + page.TrimMargins.Left + page.TrimMargins.Right;
                             XUnit imageHeight, imageWidth;
                             if (options.Stretch)
                             {
@@ -372,11 +378,6 @@ namespace Dan200.CBZLib
                     // Store contents
                     if (metadata.Contents.Count > 0 && document.Pages.Count > 0 && options.GenerateContentsList)
                     {
-                        var rootOutline = document.Outlines.Where(outline => outline.Title.Equals("Contents")).FirstOrDefault();
-                        if (rootOutline == null)
-                        {
-                            rootOutline = document.Outlines.Add("Contents", document.Pages[0], true, PdfOutlineStyle.Bold, XColors.Black);
-                        }
                         foreach (var content in metadata.Contents)
                         {
                             if (content.Pages != null)
@@ -385,7 +386,7 @@ namespace Dan200.CBZLib
                                 if (firstPageNumber >= 1 && firstPageNumber <= document.Pages.Count)
                                 {
                                     var title = content.ToString();
-                                    rootOutline.Outlines.Add(title, document.Pages[firstPageNumber - 1]);
+                                    document.Outlines.Add(title, document.Pages[firstPageNumber - 1]);
                                 }
                             }
                         }
