@@ -33,6 +33,7 @@ namespace Dan200.CBZTool
                 "  -whitebalance     Runs a white balancing algorithm on the images when extracting (default=0)" + Environment.NewLine +
                 "  -flipX/Y          Flips the images when extracting (default=0)" + Environment.NewLine +
                 "  -rot90/180/270    Rotates the images when extracting (default=0)" + Environment.NewLine +
+                "  -splitWidePages   Causes landscape images to be extracted as two seperate pages (default=0)" + Environment.NewLine +
                 "  -metadata         Specify that metadata files (ComicInfo.xml) should also be extracted (default=0)" + Environment.NewLine +
                 "  -pdf:height       When extracting to PDF, specify the height of each page in millimetres (default=260)" + Environment.NewLine +
                 "  -pdf:width        When extracting to PDF, specify the width of each page in millimetres (default=auto)" + Environment.NewLine +
@@ -239,6 +240,8 @@ namespace Dan200.CBZTool
                 pdfExportOptions.VerticalBleedInMillimetres = arguments.GetDoubleOption("pdf:ybleed", arguments.GetDoubleOption("pdf:bleed", pdfExportOptions.VerticalBleedInMillimetres));
                 pdfExportOptions.Stretch = arguments.GetBoolOption("pdf:stretch", false);
 
+                var splitWidePages = arguments.GetBoolOption("splitWidePages");
+
                 var inputPaths = new List<string>();
                 for (int i = 1; i < arguments.Count; ++i)
                 {
@@ -253,7 +256,7 @@ namespace Dan200.CBZTool
                 {
                     if (commonOutputPath != null)
                     {
-                        if (ExtractCommand.Extract(inputPath, pages, filters, commonOutputPath, append, includeMetadata, pdfExportOptions))
+                        if (ExtractCommand.Extract(inputPath, pages, filters, commonOutputPath, append, includeMetadata, pdfExportOptions, splitWidePages))
                         {
                             append = true; // If all files are being extracted to the same place, we don't want them to overwrite each other
                             includeMetadata = false; // We don't want more than one set of metadata to be added to the same file
@@ -262,7 +265,7 @@ namespace Dan200.CBZTool
                     else
                     {
                         var outputPath = Path.ChangeExtension(inputPath, null);
-                        ExtractCommand.Extract(inputPath, pages, filters, outputPath, append, includeMetadata, pdfExportOptions);
+                        ExtractCommand.Extract(inputPath, pages, filters, outputPath, append, includeMetadata, pdfExportOptions, splitWidePages);
                     }
                 }
             }

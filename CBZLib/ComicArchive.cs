@@ -182,26 +182,7 @@ namespace Dan200.CBZLib
 
             // Read the image
             string entryPath = GetPageEntryPath(pageNum);
-            var inputStream = OpenEntryForRead(entryPath);
-            if (!(inputStream is MemoryStream))
-            {
-                // Image.FromStream requires you to keep the original stream open for the lifetime of the image
-                // This is a problem, as we need to close the input stream now so we can keep editing the archive.
-                // To get around this: copy the inputStream into a MemoryStream now, then close the original.
-                // If OpenEntryForRead already returned a MemoryStream, we can skip this.
-                var memoryStream = new MemoryStream();
-                try
-                {
-                    inputStream.CopyTo(memoryStream);
-                    memoryStream.Position = 0;
-                }
-                finally
-                {
-                    inputStream.Close();
-                }
-                inputStream = memoryStream;
-            }
-            return (Bitmap)Image.FromStream(inputStream, false);
+            return ExtractEntryAsBitmap(entryPath);
         }
 
         public void ExtractPageToFile(int pageNum, string path)
@@ -210,7 +191,7 @@ namespace Dan200.CBZLib
             ExtractEntryToFile(entryPath, path);
         }
 
-        public void ExtractPagesToDirectory(string path, PageList pages)
+        public void ExtractPagesToDirectory(string path, PageList pages, bool splitWidePages = false)
         {
             // Check arguments
             if (m_openMode == ComicArchiveMode.Create)
@@ -223,16 +204,43 @@ namespace Dan200.CBZLib
 
             // Build a list of filenames to export to
             var directoryIndex = ComicExtractUtils.GetImagesInDirectory(path);
-            var outputPaths = ComicExtractUtils.GenerateNewImagePaths(directoryIndex, directoryIndex.Count + 1, entriesToExport.Count, "", path);
+            var numPathsToGenerate = (splitWidePages ? 2 : 1) * entriesToExport.Count; // make sure we generate as many paths as we might need in our worst case
+            var outputPaths = ComicExtractUtils.GenerateNewImagePaths(directoryIndex, directoryIndex.Count + 1, numPathsToGenerate, "", path);
 
             // Start extracting the pages
             int nextPageIndex = 0;
             foreach (string entryPath in entriesToExport)
             {
                 string outputExtension = Path.GetExtension(entryPath);
-                string outputPath = outputPaths[nextPageIndex] + outputExtension;
+                string outputPath = outputPaths[nextPageIndex++] + outputExtension;
+
+                // If splitWidePages is set, check the size of the bitmap, and extract it as two seperate images if it's wider than it is tall
+                if (splitWidePages)
+                {
+                    using (var bitmap = ExtractEntryAsBitmap(entryPath))
+                    {
+                        Bitmap leftImage, rightImage;
+                        if(ComicExtractUtils.SplitWideImage(bitmap, out leftImage, out rightImage))
+                        {
+                            try
+                            {
+                                var leftPageOutputPath = outputPath;
+                                var rightPageOutputPath = outputPaths[nextPageIndex++] + outputExtension;
+                                leftImage.Save(leftPageOutputPath);
+                                rightImage.Save(rightPageOutputPath);
+                            }
+                            finally
+                            {
+                                leftImage.Dispose();
+                                rightImage.Dispose();
+                            }
+                            continue;
+                        }
+                    }
+                }
+
+                // Otherwise, extract normally
                 ExtractEntryToFile(entryPath, outputPath);
-                nextPageIndex++;
             }
         }
 
@@ -880,6 +888,31 @@ namespace Dan200.CBZLib
                 var entryToExtract = m_zipArchive.Entries.Where(entry => entry.FullName.Equals(entryPath, StringComparison.InvariantCultureIgnoreCase)).First();
                 entryToExtract.ExtractToFile(outputPath, true);
             }
+        }
+
+        private Bitmap ExtractEntryAsBitmap(string entryPath)
+        {
+            // Read the image
+            var inputStream = OpenEntryForRead(entryPath);
+            if (!(inputStream is MemoryStream))
+            {
+                // Image.FromStream requires you to keep the original stream open for the lifetime of the image
+                // This is a problem, as we need to close the input stream now so we can keep editing the archive.
+                // To get around this: copy the inputStream into a MemoryStream now, then close the original.
+                // If OpenEntryForRead already returned a MemoryStream, we can skip this.
+                var memoryStream = new MemoryStream();
+                try
+                {
+                    inputStream.CopyTo(memoryStream);
+                    memoryStream.Position = 0;
+                }
+                finally
+                {
+                    inputStream.Close();
+                }
+                inputStream = memoryStream;
+            }
+            return (Bitmap)Image.FromStream(inputStream, false);
         }
 
         private Stream CreateNewEntry(string entryPath)

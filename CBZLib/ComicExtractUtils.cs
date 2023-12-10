@@ -1,6 +1,7 @@
 ﻿using Dan200.CBZTool;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -104,6 +105,25 @@ namespace Dan200.CBZLib
                 results.Add(pageName);
             }
             return results;
+        }
+
+        public static bool SplitWideImage(Bitmap bitmap, out Bitmap o_leftImage, out Bitmap o_rightImage)
+        {
+            if (bitmap.Width >= 2 && bitmap.Width > bitmap.Height)
+            {
+                var halfWidth = bitmap.Width / 2;
+                var leftPageRect = new Rectangle(0, 0, halfWidth, bitmap.Height);
+                var rightPageRect = new Rectangle(halfWidth, 0, bitmap.Width - halfWidth, bitmap.Height);
+                o_leftImage = bitmap.Clone(leftPageRect, bitmap.PixelFormat);
+                o_rightImage = bitmap.Clone(rightPageRect, bitmap.PixelFormat);
+                return true;
+            }
+            else
+            {
+                o_leftImage = null;
+                o_rightImage = null;
+                return false;
+            }
         }
     }
 }
